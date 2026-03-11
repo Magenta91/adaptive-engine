@@ -5,15 +5,13 @@ based on the student's test performance data.
 """
 
 import os
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Configure Gemini client once at module load
 _api_key = os.getenv("GEMINI_API_KEY")
-if _api_key:
-    genai.configure(api_key=_api_key)
 
 
 def _build_prompt(
@@ -79,11 +77,14 @@ def generate_study_plan(
         return _fallback_plan(weak_topics)
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        client = genai.Client(api_key=_api_key)
         prompt = _build_prompt(
             ability_score, total_questions, correct_count, weak_topics, topic_breakdown
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
         return response.text
 
     except Exception as e:
